@@ -205,7 +205,7 @@ export const loginUser = async (req, res) => {
     );
 
     const safeUser = {
-      id: user._id,
+      _id: user._id,
       name: user.name,
       email: user.email,
       isEmailVerified: user.isEmailVerified,

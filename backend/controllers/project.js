@@ -82,7 +82,7 @@ const getProjectDetails = async (req, res) => {
     });
   }
 };
-
+ 
 const getProjectTasks = async (req, res) => {
   try {
     const { projectId } = req.params;
