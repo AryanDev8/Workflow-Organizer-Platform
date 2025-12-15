@@ -18,11 +18,12 @@ export default [
     route("workspaces/:workspaceId/projects/:projectId/tasks/:taskId","routes/root/dashboard/task/task-details.tsx"),
     route("my-tasks","routes/root/dashboard/my-tasks.tsx"),
     route("members","routes/root/dashboard/members.tsx"),
+    route("achieved", "routes/root/dashboard/achieved.tsx"),
    ]),
 
    route("workspace-invite/:workspaceId","routes/root/dashboard/workspaces/workspace-invite.tsx"),
 
-   layout("routes/root/user/user-layout.tsx",[
+   layout("routes/root/user/user-layout.tsx", [
     route("user/profile","routes/root/user/profile.tsx"),
    ]),
 

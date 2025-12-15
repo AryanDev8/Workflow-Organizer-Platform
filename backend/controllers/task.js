@@ -634,7 +634,14 @@ const achievedTask = async (req, res) => {
 
 const getMyTasks = async (req, res) => {
   try {
-    const tasks = await Task.find({ assignees: { $in: [req.user._id] } })
+    // UPDATED QUERY: Fetch tasks assigned to me OR tasks that are archived
+    // This ensures archived tasks show up in the "Achieved" page regardless of assignee
+    const tasks = await Task.find({
+      $or: [
+        { assignees: { $in: [req.user._id] } }, // My assigned tasks
+        { isArchived: true }                    // All archived tasks
+      ]
+    })
       .populate("project", "title workspace")
       .sort({ createdAt: -1 });
 

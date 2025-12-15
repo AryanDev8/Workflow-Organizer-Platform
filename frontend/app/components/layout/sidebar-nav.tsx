@@ -3,6 +3,7 @@ import type { Workspace } from "@/types";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "../ui/button";
 import { useLocation, useNavigate } from "react-router";
+import React from "react";
 
 interface SidebarNavProps extends React.HtmlHTMLAttributes<HTMLElement> {
   items: {
@@ -33,8 +34,8 @@ export const SidebarNav = ({
         const handleClick = () => {
           if (el.href === "/workspaces") {
             navigate(el.href);
-          } else if (currentWorkspace && currentWorkspace.id) {
-            navigate(`${el.href}?workspaceId=${currentWorkspace.id}`);
+          } else if (currentWorkspace && currentWorkspace._id) {
+            navigate(`${el.href}?workspaceId=${currentWorkspace._id}`);
           } else {
             navigate(el.href);
           }
