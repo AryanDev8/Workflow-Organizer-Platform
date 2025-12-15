@@ -9,6 +9,9 @@ import {
   getWorkspaces,
   getWorkspaceStats,
   inviteUserToWorkspace,
+  updateWorkspace,
+  deleteWorkspace,
+  transferWorkspaceOwnership
 } from "../controllers/workspace.js";
 import {
   inviteMemberSchema,
@@ -56,5 +59,25 @@ router.get("/", authMiddleware, getWorkspaces);
 router.get("/:workspaceId", authMiddleware, getWorkspaceDetails);
 router.get("/:workspaceId/projects", authMiddleware, getWorkspaceProjects);
 router.get("/:workspaceId/stats", authMiddleware, getWorkspaceStats);
+router.put(
+  "/:workspaceId",
+  authMiddleware,
+  // validateRequest({ body: workspaceSchema }), // Optional: reuse schema validation
+  updateWorkspace
+);
+
+// Delete Workspace
+router.delete(
+  "/:workspaceId",
+  authMiddleware,
+  deleteWorkspace
+);
+
+// Transfer Ownership
+router.post(
+  "/:workspaceId/transfer",
+  authMiddleware,
+  transferWorkspaceOwnership
+);
 
 export default router;

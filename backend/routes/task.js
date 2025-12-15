@@ -19,6 +19,7 @@ import {
   updateTaskStatus,
   updateTaskTitle,
   watchTask,
+  deleteTask
 } from "../controllers/task.js";
 import authMiddleware from "../middleware/auth-middleware.js";
 
@@ -164,4 +165,6 @@ router.get(
   }),
   getCommentsByTaskId
 );
+
+router.delete("/:taskId", authMiddleware, deleteTask);
 export default router;

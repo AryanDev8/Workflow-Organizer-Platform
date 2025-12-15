@@ -4,7 +4,7 @@ import {
   changePassword,
   getUserProfile,
   updateUserProfile,
-} from "../controllers/user.js";
+  } from "../controllers/user.js";
 import { z } from "zod";
 import { validateRequest } from "zod-express-middleware";
 
@@ -35,5 +35,7 @@ router.put(
   }),
   changePassword
 );
+
+
 
 export default router;

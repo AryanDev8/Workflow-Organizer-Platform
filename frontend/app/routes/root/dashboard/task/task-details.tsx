@@ -15,17 +15,31 @@ import {
   useAchievedTaskMutation,
   useTaskByIdQuery,
   useWatchTaskMutation,
+  useDeleteTaskMutation
 } from "@/hooks/use-task";
 import { useAuth } from "@/provider/auth-context";
 import type { Project, Task } from "@/types";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
+// 1. IMPORT ALERT DIALOG COMPONENTS
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 const TaskDetails = () => {
   const { user } = useAuth();
-  const { taskId, projectId, workspaceId } = useParams<{
+  const { taskId } = useParams<{
     taskId: string;
     projectId: string;
     workspaceId: string;
@@ -39,9 +53,10 @@ const TaskDetails = () => {
     };
     isLoading: boolean;
   };
+
   const { mutate: watchTask, isPending: isWatching } = useWatchTaskMutation();
-  const { mutate: achievedTask, isPending: isAchieved } =
-    useAchievedTaskMutation();
+  const { mutate: achievedTask, isPending: isAchieved } = useAchievedTaskMutation();
+  const { mutate: deleteTask, isPending: isDeleting } = useDeleteTaskMutation();
 
   if (isLoading) {
     return (
@@ -64,10 +79,6 @@ const TaskDetails = () => {
     (watcher) => watcher._id?.toString() === user?._id?.toString()
   );
 
-  const goBack = () => navigate(-1);
-
-  const members = task?.assignees || [];
-
   const handleWatchTask = () => {
     watchTask(
       { taskId: task._id },
@@ -87,13 +98,26 @@ const TaskDetails = () => {
       { taskId: task._id },
       {
         onSuccess: () => {
-          toast.success("Task achieved");
+          toast.success("Task status updated");
         },
         onError: () => {
-          toast.error("Failed to achieve task");
+          toast.error("Failed to update task status");
         },
       }
     );
+  };
+
+  // 2. SIMPLIFIED DELETE HANDLER (No window.confirm needed here anymore)
+  const handleDeleteTask = () => {
+    deleteTask(task._id, {
+      onSuccess: () => {
+        toast.success("Task deleted successfully");
+        navigate(-1); 
+      },
+      onError: (error: any) => {
+        toast.error(error?.response?.data?.message || "Failed to delete task");
+      }
+    });
   };
 
   return (
@@ -175,14 +199,37 @@ const TaskDetails = () => {
               <div className="flex items-center gap-2 mt-4 md:mt-0">
                 <TaskStatusSelector status={task.status} taskId={task._id} />
 
-                <Button
-                  variant={"destructive"}
-                  size="sm"
-                  onClick={() => {}}
-                  className="hidden md:block"
-                >
-                  Delete Task
-                </Button>
+                {/* 3. ALERT DIALOG WRAPPER */}
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant={"destructive"}
+                      size="sm"
+                      className="hidden md:block"
+                      disabled={isDeleting}
+                    >
+                      Delete Task
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the task
+                        and remove it from our servers.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleDeleteTask}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        {isDeleting ? "Deleting..." : "Delete"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
 

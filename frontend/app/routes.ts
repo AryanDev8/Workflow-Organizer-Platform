@@ -19,6 +19,7 @@ export default [
     route("my-tasks","routes/root/dashboard/my-tasks.tsx"),
     route("members","routes/root/dashboard/members.tsx"),
     route("achieved", "routes/root/dashboard/achieved.tsx"),
+    route("settings", "routes/root/dashboard/settings.tsx")
    ]),
 
    route("workspace-invite/:workspaceId","routes/root/dashboard/workspaces/workspace-invite.tsx"),

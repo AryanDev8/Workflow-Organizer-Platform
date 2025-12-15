@@ -531,6 +531,115 @@ const acceptInviteByToken = async (req, res) => {
     });
   }
 };
+
+const updateWorkspace = async (req, res) => {
+  try {
+    const { workspaceId } = req.params;
+    const { name, description, color } = req.body;
+
+    const workspace = await Workspace.findById(workspaceId);
+
+    if (!workspace) {
+      return res.status(404).json({ message: "Workspace not found" });
+    }
+
+    // Check permissions (Only owner or admin can update)
+    const member = workspace.members.find(
+      (m) => m.user.toString() === req.user._id.toString()
+    );
+
+    if (!member || !["owner", "admin"].includes(member.role)) {
+      return res.status(403).json({ message: "Not authorized to update this workspace" });
+    }
+
+    workspace.name = name || workspace.name;
+    workspace.description = description || workspace.description;
+    workspace.color = color || workspace.color;
+
+    await workspace.save();
+
+    res.status(200).json(workspace);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const deleteWorkspace = async (req, res) => {
+  try {
+    const { workspaceId } = req.params;
+
+    const workspace = await Workspace.findById(workspaceId);
+
+    if (!workspace) {
+      return res.status(404).json({ message: "Workspace not found" });
+    }
+
+    // Only Owner can delete
+    if (workspace.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Only the owner can delete the workspace" });
+    }
+
+    // Optional: Delete related projects/tasks here if needed
+    // await Project.deleteMany({ workspace: workspaceId });
+    // await Task.deleteMany({ project: { $in: ... } });
+
+    await Workspace.findByIdAndDelete(workspaceId);
+
+    res.status(200).json({ message: "Workspace deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const transferWorkspaceOwnership = async (req, res) => {
+  try {
+    const { workspaceId } = req.params;
+    const { newOwnerId } = req.body; // This is the MEMBER ID (not user ID directly, depending on how you send it)
+
+    const workspace = await Workspace.findById(workspaceId);
+
+    if (!workspace) {
+      return res.status(404).json({ message: "Workspace not found" });
+    }
+
+    // Only current Owner can transfer
+    if (workspace.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Only the owner can transfer ownership" });
+    }
+
+    // Find the new owner in members list
+    // Note: newOwnerId passed from frontend is typically the User ID
+    const newOwnerMember = workspace.members.find(
+      (m) => m.user.toString() === newOwnerId
+    );
+
+    if (!newOwnerMember) {
+      return res.status(400).json({ message: "Selected user is not a member of this workspace" });
+    }
+
+    // Update roles
+    // 1. Demote current owner to admin
+    const currentOwnerMember = workspace.members.find(
+      (m) => m.user.toString() === req.user._id.toString()
+    );
+    if (currentOwnerMember) currentOwnerMember.role = "admin";
+
+    // 2. Promote new owner
+    newOwnerMember.role = "owner";
+
+    // 3. Update workspace owner field
+    workspace.owner = newOwnerId;
+
+    await workspace.save();
+
+    res.status(200).json({ message: "Ownership transferred successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 export {
   createWorkspace,
   getWorkspaces,
@@ -540,4 +649,7 @@ export {
   inviteUserToWorkspace,
   acceptGenerateInvite,
   acceptInviteByToken,
+  updateWorkspace,
+  deleteWorkspace,
+  transferWorkspaceOwnership,
 };

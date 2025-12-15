@@ -26,3 +26,4 @@ export const useUpdateUserProfile = () => {
     mutationFn: (data: ProfileFormData) => updateData("/users/profile", data),
   });
 };
+

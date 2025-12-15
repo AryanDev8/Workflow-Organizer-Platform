@@ -654,6 +654,50 @@ const getMyTasks = async (req, res) => {
   }
 };
 
+const deleteTask = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+
+    const task = await Task.findById(taskId);
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    const project = await Project.findById(task.project);
+
+    // Permission Check: Ensure user is a member of the project
+    const isMember = project.members.some(
+      (member) => member.user.toString() === req.user._id.toString()
+    );
+
+    if (!isMember) {
+      return res.status(403).json({
+        message: "You are not a member of this project",
+      });
+    }
+
+    // Remove task from the Project's task list
+    project.tasks = project.tasks.filter(
+      (t) => t.toString() !== taskId.toString()
+    );
+    await project.save();
+
+    // Delete the task itself
+    await Task.findByIdAndDelete(taskId);
+
+    // Optional: Delete related comments or activity logs if needed
+    // await Comment.deleteMany({ task: taskId });
+
+    res.status(200).json({ message: "Task deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
 export {
   createTask,
   getTaskById,
@@ -670,4 +714,5 @@ export {
   watchTask,
   achievedTask,
   getMyTasks,
+  deleteTask,
 };

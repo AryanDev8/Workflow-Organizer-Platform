@@ -1,5 +1,5 @@
 import type { CreateTaskFormData } from "@/components/task/create-task-dialog";
-import { fetchData, postData, updateData } from "@/lib/fetch-util";
+import { fetchData, postData, updateData, deleteData } from "@/lib/fetch-util";
 import type { TaskPriority, TaskStatus } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -215,5 +215,19 @@ export const useGetMyTasksQuery = () => {
   return useQuery({
     queryKey: ["my-tasks", "user"],
     queryFn: () => fetchData("/tasks/my-tasks"),
+  });
+};
+
+export const useDeleteTaskMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (taskId: string) => deleteData(`/tasks/${taskId}`),
+    onSuccess: (data: any) => {
+      // Refresh the project board so the task disappears
+      queryClient.invalidateQueries({ queryKey: ["project"] });
+      // Refresh "My Tasks" if you are there
+      queryClient.invalidateQueries({ queryKey: ["my-tasks"] });
+    },
   });
 };
